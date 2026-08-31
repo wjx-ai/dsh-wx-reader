@@ -27,22 +27,12 @@
   `DSH_WX_READER_PYTHON` 覆盖指向任意解释器路径。
 - **清晰结果**:抓取失败/环境校验/未解析出正文都会返回可读的错误信息。
 
-## 工作原理
-
-1. DSH 的插件加载器(profile 的 `cordis:include`)按包名 `@wjx-ai/dsh-wx-reader` 导入本插件。
-2. 插件在 `apply()` 里通过 Cordis 注入的 `tools` / `subprocess` 两个 Service,调用 `tools.register`
-   注册名为 `read_wechat_article` 的动态工具。
-3. 工具执行时,通过 `subprocess.spawn` 调用 `python lib/wx_article_tool.py <url>`。
-4. Python 脚本用 `urllib` 拉取页面,用正则抽取 `msg_title` / `nickname` / `js_content`,
-   把 HTML 转成纯文本,并把结果以单行 JSON 输出。
-5. 插件解析 JSON、规整成统一的工具输出,并交给 `output.render` 渲染成易读文本。
-
 ## 环境要求
 
 | 依赖 | 说明 |
 | --- | --- |
 | DSH(DeepSeek Harness) | 提供 `tools` / `subprocess` Service,并负责按 `cordis:include` 加载插件 |
-| Node.js | 运行本插件 **>= 18**(ESM);仓库 CI 发布走 npm Trusted Publishing,需 **Node >= 22.14、npm >= 11.5.1** |
+| Node.js | 运行本插件 **>= 18**([ESM](https://nodejs.org/api/esm.html)) |
 | Python 3 | 仅用于抓取/解析脚本;脚本只用标准库;解释器需在 `PATH` 上,或用 `DSH_WX_READER_PYTHON` 指定 |
 
 > 不需要任何 Python 第三方包,不需要 Selenium / 浏览器,不需要配置 API Key。
@@ -184,28 +174,6 @@ node test/smoke.mjs
 
 改动 `lib/index.js` 后,重启 `dsh web` 即可;插件注册失败会打印
 `[wx-reader] plugin activation failed; continuing without it`。
-
-### 发布新版本(CI)
-
-发布走 npm **Trusted Publishing(OIDC)**,无需长期 token/恢复码:
-
-1. 改 `package.json` 的 `version`(语义化版本)。
-2. 提交推送,并打一个 `v*` 标签:
-
-```powershell
-git add -A
-git commit -m "chore: release X.Y.Z"
-git push origin main
-git tag vX.Y.Z
-git push origin vX.Y.Z
-```
-
-3. `.github/workflows/publish.yml` 检测到 `v*` 标签,会用 OIDC 自动执行
-   `npm publish --provenance --access public`,发布**带 SLSA provenance 证据**的版本。
-
-> 前置:npm 侧已为 `@wjx-ai/dsh-wx-reader` 配好 trusted publisher(仓库
-> `wjx-ai/dsh-wx-reader` + 工作流 `publish.yml`)。刚发布的新包会触发 npm 供应链
-> `minimumReleaseAge` 策略,首次安装时 pnpm 会自动加入豁免项,属正常。
 
 ## 故障排除
 

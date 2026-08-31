@@ -1,8 +1,16 @@
 name: Publish @wjx-ai/dsh-wx-reader to npm
 
-# 通过 npm Trusted Publishing(OIDC)发布:无需任何长期 token。
+# 通过 npm Trusted Publishing(OIDC)发布:无需任何长期 token/恢复码。
 # 前置:在 npm 账号为 @wjx-ai/dsh-wx-reader 配置 Trusted Publishing,
-#       并把本仓库 + 本工作流(Publish)授权为受信任的发布者。
+#       并把本仓库 + 本工作流(Publish)授权为受信任的发布者(工作流文件名: publish.yml)。
+#
+# 发布流程(维护者):
+#   1. 改 package.json 的 version(语义化版本)。
+#   2. 提交推送,并打一个 v* 标签:
+#        git add -A && git commit -m "chore: release X.Y.Z" && git push origin main
+#        git tag vX.Y.Z && git push origin vX.Y.Z
+#   3. 本工作流检测到 v* 标签后,用 OIDC 自动执行 npm publish --provenance(带 SLSA provenance 证据)。
+#
 # 触发:推送 v* 标签(或手动触发 workflow_dispatch)。
 
 on:
