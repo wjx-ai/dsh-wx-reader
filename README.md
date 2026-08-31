@@ -1,4 +1,4 @@
-# dsh-wx-reader
+# @wjx-ai/dsh-wx-reader
 
 > DeepSeek Harness(DSH)微信公众号文章阅读工具插件 —— 为 DSH 提供一个可直接调用的
 > **`read_wechat_article`** 工具,输入公众号文章链接,返回标题、公众号名和正文。
@@ -10,7 +10,7 @@
 
 ## 简介
 
-`dsh-wx-reader` 是 DSH 的一个 **Host 侧工具插件**。它以 Cordis 插件的形式注册一个动态工具
+`@wjx-ai/dsh-wx-reader` 是 DSH 的一个 **Host 侧工具插件**。它以 Cordis 插件的形式注册一个动态工具
 `read_wechat_article`,用于读取微信公众号(微信官方账号)的文章正文。
 
 - 只需输入 `mp.weixin.qq.com/s/...` 的链接。
@@ -29,7 +29,7 @@
 
 ## 工作原理
 
-1. DSH 的插件加载器(profile 的 `cordis:include`)按包名 `dsh-wx-reader` 导入本插件。
+1. DSH 的插件加载器(profile 的 `cordis:include`)按包名 `@wjx-ai/dsh-wx-reader` 导入本插件。
 2. 插件在 `apply()` 里通过 Cordis 注入的 `tools` / `subprocess` 两个 Service,调用 `tools.register`
    注册名为 `read_wechat_article` 的动态工具。
 3. 工具执行时,通过 `subprocess.spawn` 调用 `python lib/wx_article_tool.py <url>`。
@@ -51,26 +51,32 @@
 
 安装分两步:①把包装进 DSH 的 profile;②在 profile 里挂载它。
 
-### 方式一:从 GitHub 直接安装(推荐)
+### 方式一:从 npm 安装(推荐,带 @)
 
 ```powershell
-# 1) 把插件作为依赖装进 web profile(pnpm 会从 GitHub 拉取并 link)
+dsh plugin --profile web add @wjx-ai/dsh-wx-reader
+```
+
+### 方式二:从 GitHub 直接安装
+
+```powershell
+# pnpm 会从 GitHub 拉取并 link(安装后的包名为 @wjx-ai/dsh-wx-reader)
 dsh plugin --profile web add github:wjx-ai/dsh-wx-reader
 ```
 
-### 方式二:本地目录安装(你已 clone 到本机)
+### 方式三:本地目录安装(你已 clone 到本机)
 
 ```powershell
 # 用本地路径安装(pnpm 的 file: 协议会 link 到该目录)
 dsh plugin --profile web add file:C:\path\to\dsh-wx-reader
 ```
 
-### 方式三:手动 link(不依赖 pnpm,Windows 示例,已验证)
+### 方式四:手动 link(不依赖 pnpm,Windows 示例,已验证)
 
 ```powershell
-# 让包名 dsh-wx-reader 能被打包目录解析:在 profile 的 node_modules 里建一个 junction
+# 让包名能被解析:scoped 名是 @wjx-ai/dsh-wx-reader,放在 node_modules 的 @wjx-ai 子目录下
 New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\node_modules\dsh-wx-reader" `
+  -Path "$env:USERPROFILE\.dsh\profiles\node_modules\@wjx-ai\dsh-wx-reader" `
   -Target "C:\path\to\dsh-wx-reader"
 ```
 
@@ -83,14 +89,14 @@ New-Item -ItemType Junction `
 如果你的 dsh 版本没有自动激活(例如插件是在声明 `dsh.bundle` 之前安装的),二选一:
 
 **A. 加入 `dsh.profile.bundles`(推荐)**:在 `$env:USERPROFILE\.dsh\profiles\web\package.json` 的
-`dsh.profile.bundles` 数组里加上 `"dsh-wx-reader"`(与 `@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app` 并列)。
+`dsh.profile.bundles` 数组里加上 `"@wjx-ai/dsh-wx-reader"`(与 `@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app` 并列)。
 
 **B. 在 `cordis.patch.yml` 追加 insert**(本仓库已附带 `cordis.patch.yml`):
 
 ```yaml
 - insert:
     - id: wx-reader
-      name: 'dsh-wx-reader'
+      name: '@wjx-ai/dsh-wx-reader'
 ```
 
 ### 重启生效

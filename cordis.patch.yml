@@ -3,4 +3,4 @@
 
 - insert:
     - id: wx-reader
-      name: 'dsh-wx-reader'
+      name: '@wjx-ai/dsh-wx-reader'
