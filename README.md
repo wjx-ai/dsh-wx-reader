@@ -42,14 +42,16 @@
 | 依赖 | 说明 |
 | --- | --- |
 | DSH(DeepSeek Harness) | 提供 `tools` / `subprocess` Service,并负责按 `cordis:include` 加载插件 |
-| Node.js | **>= 18**(本插件为 ESM) |
+| Node.js | 运行本插件 **>= 18**(ESM);仓库 CI 发布走 npm Trusted Publishing,需 **Node >= 22.14、npm >= 11.5.1** |
 | Python 3 | 仅用于抓取/解析脚本;脚本只用标准库;解释器需在 `PATH` 上,或用 `DSH_WX_READER_PYTHON` 指定 |
 
 > 不需要任何 Python 第三方包,不需要 Selenium / 浏览器,不需要配置 API Key。
 
 ## 安装
 
-安装分两步:①把包装进 DSH 的 profile;②在 profile 里挂载它。
+`dsh plugin add` 把包装进 profile 后,dsh 会把它当做一个 **profile 层自动激活**(本包在 `package.json`
+声明了 `"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }`,会自动应用自带的
+`cordis.patch.yml` 插入 `wx-reader` 条目),通常无需手动挂载。
 
 ### 方式一:从 npm 安装(推荐,带 @)
 
@@ -60,38 +62,18 @@ dsh plugin --profile web add @wjx-ai/dsh-wx-reader
 ### 方式二:从 GitHub 直接安装
 
 ```powershell
-# pnpm 会从 GitHub 拉取并 link(安装后的包名为 @wjx-ai/dsh-wx-reader)
+# pnpm 会从 GitHub 拉取并 link;安装后的包名为 @wjx-ai/dsh-wx-reader
 dsh plugin --profile web add github:wjx-ai/dsh-wx-reader
 ```
 
-### 方式三:本地目录安装(你已 clone 到本机)
+### 挂载校验(通常无需手动,提供兜底)
 
-```powershell
-# 用本地路径安装(pnpm 的 file: 协议会 link 到该目录)
-dsh plugin --profile web add file:C:\path\to\dsh-wx-reader
-```
-
-### 方式四:手动 link(不依赖 pnpm,Windows 示例,已验证)
-
-```powershell
-# 让包名能被解析:scoped 名是 @wjx-ai/dsh-wx-reader,放在 node_modules 的 @wjx-ai 子目录下
-New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\node_modules\@wjx-ai\dsh-wx-reader" `
-  -Target "C:\path\to\dsh-wx-reader"
-```
-
-### 挂载到 profile(通常无需手动,提供兜底)
-
-本插件在 `package.json` 里声明了 `"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }`,
-因此 `dsh plugin add` 把它装好后,dsh 会把它当作一个 profile 层 **自动激活**(应用它自带的
-`cordis.patch.yml`,插入 `wx-reader` 条目),无需再手动挂载。
-
-如果你的 dsh 版本没有自动激活(例如插件是在声明 `dsh.bundle` 之前安装的),二选一:
+如果装好后 dsh 没有自动激活该插件(例如旧版 dsh、或插件是在声明 `dsh.bundle` 之前安装的),二选一:
 
 **A. 加入 `dsh.profile.bundles`(推荐)**:在 `$env:USERPROFILE\.dsh\profiles\web\package.json` 的
 `dsh.profile.bundles` 数组里加上 `"@wjx-ai/dsh-wx-reader"`(与 `@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app` 并列)。
 
-**B. 在 `cordis.patch.yml` 追加 insert**(本仓库已附带 `cordis.patch.yml`):
+**B. 在 `cordis.patch.yml` 追加 insert**:
 
 ```yaml
 - insert:
@@ -157,12 +139,16 @@ dsh web
 
 ```
 dsh-wx-reader/
+├── .github/
+│   └── workflows/
+│       └── publish.yml     # 发布:推 v* 标签 → CI 用 OIDC 发到 npm
 ├── lib/
 │   ├── index.js            # Cordis 插件入口(ESM,注册 read_wechat_article 工具)
 │   └── wx_article_tool.py  # Python 抓取+解析脚本(纯标准库)
 ├── test/
 │   └── smoke.mjs           # 冒烟测试:验证插件形状 + 脚本可运行
 ├── cordis.patch.yml        # 推荐的 profile 挂载片段
+├── README.md
 ├── LICENSE
 └── package.json
 ```
@@ -179,6 +165,28 @@ node test/smoke.mjs
 
 改动 `lib/index.js` 后,重启 `dsh web` 即可;插件注册失败会打印
 `[wx-reader] plugin activation failed; continuing without it`。
+
+### 发布新版本(CI)
+
+发布走 npm **Trusted Publishing(OIDC)**,无需长期 token/恢复码:
+
+1. 改 `package.json` 的 `version`(语义化版本)。
+2. 提交推送,并打一个 `v*` 标签:
+
+```powershell
+git add -A
+git commit -m "chore: release X.Y.Z"
+git push origin main
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+3. `.github/workflows/publish.yml` 检测到 `v*` 标签,会用 OIDC 自动执行
+   `npm publish --provenance --access public`,发布**带 SLSA provenance 证据**的版本。
+
+> 前置:npm 侧已为 `@wjx-ai/dsh-wx-reader` 配好 trusted publisher(仓库
+> `wjx-ai/dsh-wx-reader` + 工作流 `publish.yml`)。刚发布的新包会触发 npm 供应链
+> `minimumReleaseAge` 策略,首次安装时 pnpm 会自动加入豁免项,属正常。
 
 ## 故障排除
 
