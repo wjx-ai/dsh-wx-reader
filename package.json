@@ -1,6 +1,6 @@
 {
   "name": "@wjx-ai/dsh-wx-reader",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DSH（DeepSeek Harness）微信公众号文章阅读工具插件：注册 read_wechat_article 工具，HTTP 拉取并解析公众号文章正文。",
   "type": "module",
   "main": "lib/index.js",
