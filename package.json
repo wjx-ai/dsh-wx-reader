@@ -1,0 +1,49 @@
+{
+  "name": "dsh-wx-reader",
+  "version": "1.0.0",
+  "description": "DSH（DeepSeek Harness）微信公众号文章阅读工具插件：注册 read_wechat_article 工具，HTTP 拉取并解析公众号文章正文。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/wx_article_tool.py",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/smoke.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "wechat",
+    "weixin",
+    "mp",
+    "article",
+    "reader",
+    "cordis",
+    "plugin",
+    "tool"
+  ],
+  "author": "wjx-ai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wjx-ai/dsh-wx-reader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wjx-ai/dsh-wx-reader/issues"
+  },
+  "homepage": "https://github.com/wjx-ai/dsh-wx-reader#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
