@@ -27,12 +27,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
 
       # 本包无第三方依赖、无构建步骤,直接发布 files 清单里的文件。
-      # trusted publishing 会在 id-token: write 存在且 npm 信任本工作流时,
-      # 用 OIDC 身份自动认证。这里不设 registry-url / NODE_AUTH_TOKEN,
-      # 以免 setup-node 注入的 token 覆盖 OIDC(否则 npm 会走 token 认证导致失败)。
+      # trusted publishing 要求 npm CLI >= 11.5.1 且 Node >= 22.14 (故用 node 24)。
+      # 这里不设 NODE_AUTH_TOKEN,让 npm 用 OIDC 身份自动认证。
       - name: Publish
         run: npm publish --provenance --access public
         env:
