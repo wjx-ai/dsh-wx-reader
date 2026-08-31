@@ -89,6 +89,25 @@ dsh web
 
 启动日志出现 `[wx-reader] registered read_wechat_article tool` 即成功。
 
+### 升级到最新版
+
+无需指定版本号。在 DSH profile 目录下(把 `web` 换成你的 profile 名)执行:
+
+```powershell
+cd $env:USERPROFILE\.dsh\profiles\web
+pnpm update @wjx-ai/dsh-wx-reader
+```
+
+之后重启生效:
+
+```powershell
+dsh web
+```
+
+> **注意(pnpm 供应链策略)**:如果刚发布了新版本但 `pnpm update` 提示 `Already up to date`,
+> 那是 pnpm 的 `minimumReleaseAge` 安全策略在限制“太年轻”的包。要么等它满足最低年龄,
+> 要么在 profile 的 `pnpm-workspace.yaml` 里设 `minimumReleaseAge: 0` 后再更新。
+
 ## 使用
 
 装好并重启后,直接让 Agent 调用工具即可:
