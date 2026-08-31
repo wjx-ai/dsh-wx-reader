@@ -74,19 +74,24 @@ New-Item -ItemType Junction `
   -Target "C:\path\to\dsh-wx-reader"
 ```
 
-### 挂载到 profile(三种都需二选一)
+### 挂载到 profile(通常无需手动,提供兜底)
 
-`pnpm add` / junction 只是把包放进 `node_modules`,**还必须告诉 DSH 加载它**。请在
-`$env:USERPROFILE\.dsh\profiles\web\cordis.patch.yml` 追加(本仓库已附带 `cordis.patch.yml`):
+本插件在 `package.json` 里声明了 `"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }`,
+因此 `dsh plugin add` 把它装好后,dsh 会把它当作一个 profile 层 **自动激活**(应用它自带的
+`cordis.patch.yml`,插入 `wx-reader` 条目),无需再手动挂载。
+
+如果你的 dsh 版本没有自动激活(例如插件是在声明 `dsh.bundle` 之前安装的),二选一:
+
+**A. 加入 `dsh.profile.bundles`(推荐)**:在 `$env:USERPROFILE\.dsh\profiles\web\package.json` 的
+`dsh.profile.bundles` 数组里加上 `"dsh-wx-reader"`(与 `@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app` 并列)。
+
+**B. 在 `cordis.patch.yml` 追加 insert**(本仓库已附带 `cordis.patch.yml`):
 
 ```yaml
 - insert:
     - id: wx-reader
       name: 'dsh-wx-reader'
 ```
-
-或者在 `$env:USERPROFILE\.dsh\profiles\web\package.json` 的 `dsh.profile.bundles` 数组里加上
-`"dsh-wx-reader"`(与 `@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app` 并列)。
 
 ### 重启生效
 
