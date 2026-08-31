@@ -1,0 +1,37 @@
+name: Publish @wjx-ai/dsh-wx-reader to npm
+
+# 通过 npm Trusted Publishing(OIDC)发布:无需任何长期 token。
+# 前置:在 npm 账号为 @wjx-ai/dsh-wx-reader 配置 Trusted Publishing,
+#       并把本仓库 + 本工作流(Publish)授权为受信任的发布者。
+# 触发:推送 v* 标签(或手动触发 workflow_dispatch)。
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+
+      # 本包无第三方依赖、无构建步骤,直接发布 files 清单里的文件。
+      # trusted publishing 会在 id-token: write 存在且 npm 信任本工作流时,
+      # 用 OIDC 身份自动认证,无需 NODE_AUTH_TOKEN。
+      - name: Publish
+        run: npm publish --provenance --access public
